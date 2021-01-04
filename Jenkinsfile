@@ -15,7 +15,7 @@ pipeline {
         stage('Build') {
             steps {
                 withAWS(credentials: 'build-credentials', region: 'us-west-2') {
-                    dir('rythm-socketio-cdk') {
+                    dir('rythm-web-cdk') {
                         sh 'npm install'
                         sh 'cdk list'
                         sh 'cdk synth --all'
