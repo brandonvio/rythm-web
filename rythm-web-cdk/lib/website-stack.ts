@@ -31,8 +31,7 @@ export class WebsiteStack extends cdk.Stack {
 
     const certificateCrn = ssm.StringParameter.valueForStringParameter(
       this,
-      "rythm-east-certificate-arn",
-      1
+      "rythm-east-certificate-arn"
     );
 
     // //*****************************************************************************/
@@ -44,21 +43,23 @@ export class WebsiteStack extends cdk.Stack {
       certificateCrn
     );
 
-    console.log("sslCertificate.certificateArn;" + sslCertificate.certificateArn);
-
-    const cloudFrontDist = new cloudfront.Distribution(this, "RythmCloudFrontDist", {
-      defaultRootObject: "index.html",
-      certificate: sslCertificate,
-      domainNames: ["app.rythm.cc"],
-      defaultBehavior: {
-        origin: new origins.S3Origin(bucket),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      },
+    new cdk.CfnOutput(this, "certificateArn", {
+      value: sslCertificate.certificateArn,
     });
 
-    this.distributionDomainName = new cdk.CfnOutput(this, "distributionDomainName", {
-      value: cloudFrontDist.distributionDomainName,
-    });
+    // const cloudFrontDist = new cloudfront.Distribution(this, "RythmCloudFrontDist", {
+    //   defaultRootObject: "index.html",
+    //   certificate: sslCertificate,
+    //   domainNames: ["app.rythm.cc"],
+    //   defaultBehavior: {
+    //     origin: new origins.S3Origin(bucket),
+    //     viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //   },
+    // });
+
+    // this.distributionDomainName = new cdk.CfnOutput(this, "distributionDomainName", {
+    //   value: cloudFrontDist.distributionDomainName,
+    // });
 
     // //*****************************************************************************/
     // // Deployment.
