@@ -1,5 +1,9 @@
 import * as cdk from "@aws-cdk/core";
 import * as s3 from "@aws-cdk/aws-s3";
+import * as acm from "@aws-cdk/aws-certificatemanager";
+import * as ssm from "@aws-cdk/aws-ssm";
+import * as cloudfront from "@aws-cdk/aws-cloudfront";
+import * as origins from "@aws-cdk/aws-cloudfront-origins";
 
 export class WebsiteStack extends cdk.Stack {
   public readonly distributionDomainName: cdk.CfnOutput;
@@ -13,7 +17,7 @@ export class WebsiteStack extends cdk.Stack {
     //*****************************************************************************/
     // const reactBuildPath = path.resolve(__dirname, "../builds/react-app-build/build");
 
-    const reactAppBucket = new s3.Bucket(this, "reactAppBucket", {
+    const bucket = new s3.Bucket(this, "RythmOriginBucket", {
       bucketName: "origin.rythm.cc",
       publicReadAccess: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -22,31 +26,37 @@ export class WebsiteStack extends cdk.Stack {
     });
 
     this.websiteUrlOutput = new cdk.CfnOutput(this, "websiteUrlOutput", {
-      value: reactAppBucket.bucketWebsiteUrl,
+      value: bucket.bucketWebsiteUrl,
     });
+
+    const certificateCrn = ssm.StringParameter.valueForStringParameter(
+      this,
+      "rythm-east-certificate-arn",
+      1
+    );
 
     // //*****************************************************************************/
     // // CloudFront.
     // //*****************************************************************************/
-    // const sslCertificate = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   "sslCertificate",
-    //   "arn:aws:acm:us-east-1:705871014762:certificate/0e063c6c-9de0-4877-9fe0-f3c571c78101"
-    // );
+    const sslCertificate = acm.Certificate.fromCertificateArn(
+      this,
+      "RythmCertificate",
+      certificateCrn
+    );
 
-    // const cloudFrontDist = new cloudfront.Distribution(this, "cloudFrontDist", {
-    //   defaultRootObject: "index.html",
-    //   certificate: sslCertificate,
-    //   defaultBehavior: {
-    //     origin: new origins.S3Origin(reactAppBucket),
-    //     viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    //   },
-    // });
-    //   domainNames: ["mytodos.xyz"],
+    const cloudFrontDist = new cloudfront.Distribution(this, "RythmCloudFrontDist", {
+      defaultRootObject: "index.html",
+      certificate: sslCertificate,
+      domainNames: ["app.rythm.cc"],
+      defaultBehavior: {
+        origin: new origins.S3Origin(bucket),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+    });
 
-    // this.distributionDomainName = new cdk.CfnOutput(this, "distributionDomainName", {
-    //   value: cloudFrontDist.distributionDomainName,
-    // });
+    this.distributionDomainName = new cdk.CfnOutput(this, "distributionDomainName", {
+      value: cloudFrontDist.distributionDomainName,
+    });
 
     // //*****************************************************************************/
     // // Deployment.
