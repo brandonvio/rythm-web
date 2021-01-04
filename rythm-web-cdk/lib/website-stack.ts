@@ -44,6 +44,8 @@ export class WebsiteStack extends cdk.Stack {
       certificateCrn
     );
 
+    console.log("sslCertificate.certificateArn;" + sslCertificate.certificateArn);
+
     const cloudFrontDist = new cloudfront.Distribution(this, "RythmCloudFrontDist", {
       defaultRootObject: "index.html",
       certificate: sslCertificate,
