@@ -1,16 +1,6 @@
 import * as cdk from "@aws-cdk/core";
-import * as acm from "@aws-cdk/aws-certificatemanager";
 import * as s3 from "@aws-cdk/aws-s3";
-// import * as s3Deployment from "@aws-cdk/aws-s3-deployment";
-import * as path from "path";
-import * as cloudfront from "@aws-cdk/aws-cloudfront";
-import * as origins from "@aws-cdk/aws-cloudfront-origins";
-import * as route53 from "@aws-cdk/aws-route53";
-import * as targets from "@aws-cdk/aws-route53-targets";
 
-/**
- * A stack for the Todo API.
- */
 export class WebsiteStack extends cdk.Stack {
   public readonly distributionDomainName: cdk.CfnOutput;
   public readonly apiUrlOutput: cdk.CfnOutput;
