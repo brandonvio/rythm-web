@@ -4,6 +4,8 @@ import * as acm from "@aws-cdk/aws-certificatemanager";
 import * as ssm from "@aws-cdk/aws-ssm";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
 import * as origins from "@aws-cdk/aws-cloudfront-origins";
+import * as route53 from "@aws-cdk/aws-route53";
+import * as targets from "@aws-cdk/aws-route53-targets";
 
 export class WebsiteStack extends cdk.Stack {
   public readonly distributionDomainName: cdk.CfnOutput;
@@ -47,32 +49,34 @@ export class WebsiteStack extends cdk.Stack {
       value: sslCertificate.certificateArn,
     });
 
-    // const cloudFrontDist = new cloudfront.Distribution(this, "RythmCloudFrontDist", {
-    //   defaultRootObject: "index.html",
-    //   certificate: sslCertificate,
-    //   domainNames: ["app.rythm.cc"],
-    //   defaultBehavior: {
-    //     origin: new origins.S3Origin(bucket),
-    //     viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    //   },
-    // });
+    const cloudFrontDist = new cloudfront.Distribution(this, "RythmCloudFrontDist", {
+      defaultRootObject: "index.html",
+      certificate: sslCertificate,
+      domainNames: ["app.rythm.cc"],
+      defaultBehavior: {
+        origin: new origins.S3Origin(bucket),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+    });
 
-    // this.distributionDomainName = new cdk.CfnOutput(this, "distributionDomainName", {
-    //   value: cloudFrontDist.distributionDomainName,
-    // });
+    this.distributionDomainName = new cdk.CfnOutput(this, "distributionDomainName", {
+      value: cloudFrontDist.distributionDomainName,
+    });
 
-    // //*****************************************************************************/
-    // // Deployment.
-    // //*****************************************************************************/
-    // const hostedZone = route53.PublicHostedZone.fromHostedZoneAttributes(this, "hostedZone", {
-    //   hostedZoneId: "Z04032513RU0Y99VPUBXM",
-    //   zoneName: "mytodos.xyz",
-    // });
+    const hostedZoneId = ssm.StringParameter.valueForStringParameter(this, "rythm-hostedzoneid");
 
-    // const arecord = new route53.ARecord(this, "arecord", {
-    //   zone: hostedZone,
-    //   recordName: "mytodos.xyz",
-    //   target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(cloudFrontDist)),
-    // });
+    //*****************************************************************************/
+    // Deployment.
+    //*****************************************************************************/
+    const hostedZone = route53.PublicHostedZone.fromHostedZoneAttributes(this, "hostedZone", {
+      hostedZoneId: hostedZoneId,
+      zoneName: "rythm.cc",
+    });
+
+    const arecord = new route53.ARecord(this, "arecord", {
+      zone: hostedZone,
+      recordName: "app.rythm.cc",
+      target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(cloudFrontDist)),
+    });
   }
 }
