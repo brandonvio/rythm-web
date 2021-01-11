@@ -25,6 +25,7 @@ pipeline {
                         sh 'npm install'
                         sh 'npm run build'
                         sh 'aws s3 sync ./build s3://origin.rythm.cc --acl public-read'
+                        sh 'aws cloudfront create-invalidation --distribution-id E32Z54H5THVNYT --paths "/*"'
                     }
                 }
             }
