@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 const io = require("socket.io-client");
-const ENDPOINT = "http://54.187.221.30:3000";
+const ENDPOINT = "http://34.215.26.46:3000";
 
 export function StreamComponent() {
   const [response, setResponse] = useState("");
